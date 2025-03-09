@@ -39,9 +39,7 @@ export default function Home() {
   function getUrl() {
     const updatedSearchParams = new URLSearchParams(searchParams.toString());
     updatedSearchParams.set('r', roomId);
-    return `${
-      process.env.NEXT_PUBLIC_URL
-    }${pathname}?${updatedSearchParams.toString()}`;
+    return `${pathname}?${updatedSearchParams.toString()}`;
   }
 
   const wsT = usePartySocket({
