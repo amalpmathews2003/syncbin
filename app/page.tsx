@@ -118,7 +118,7 @@ export default function Home() {
             level="H"
             bgColor="bg-gray-900"
             fgColor="white"
-            value={getUrl()}
+            value={`${process.env.NEXT_PUBLIC_URL}${getUrl()}`}
             className="w-54 h-54"
           />
           <LanguageSelector className="w-full max-w-xs p-2 bg-white dark:bg-gray-800 shadow-md rounded-lg" />
