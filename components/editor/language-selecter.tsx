@@ -38,6 +38,7 @@ const defaultLanguage = 'plaintext';
 
 export function LanguageSelector() {
   const [position, setPosition] = useState(defaultLanguage);
+  const setLanguage = useEditorStore(state => state.setLanguage);
 
   const language = useEditorStore(state => state.language);
 
@@ -55,7 +56,13 @@ export function LanguageSelector() {
       <DropdownMenuContent className="w-56">
         <DropdownMenuLabel>Lanugages</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+        <DropdownMenuRadioGroup
+          value={position}
+          onValueChange={language => {
+            setPosition(language);
+            setLanguage(language);
+          }}
+        >
           {languages.map((language, index) => (
             <DropdownMenuRadioItem key={index} value={language}>
               {language}

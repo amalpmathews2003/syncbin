@@ -1,9 +1,12 @@
 'use client';
-import MonacoEditor from '@monaco-editor/react';
+
+import { Editor as MonacoEditor } from '@monaco-editor/react';
 import { LanguageSelector } from './language-selecter';
 import { useEditorStore } from './editor-store';
 import { FileSelector } from './file-selecter';
 import { useDebouncedCallback } from 'use-debounce';
+import { useWebSockerStore } from '../ws-store';
+import { pack } from 'msgpackr';
 
 export function Editor() {
   const language = useEditorStore(state => state.language);
@@ -11,23 +14,35 @@ export function Editor() {
   const content = useEditorStore(state => state.content);
   const setContent = useEditorStore(state => state.setContent);
 
+  const ws = useWebSockerStore(state => state.ws);
+
   const handleEditorChange = useDebouncedCallback(value => {
     const newContent = value || '';
     if (newContent !== content) {
       setContent(newContent);
       const detectedLang = detectLanguage(newContent);
-      console.log(detectedLang);
       if (detectedLang !== language) {
         setLanguage(detectedLang);
       }
+      broadcastContent(detectedLang, newContent);
     }
   }, 200);
 
+  const broadcastContent = useDebouncedCallback(
+    (langT: string, contT: string) => {
+      if (!ws) return;
+      const json = {
+        language: langT,
+        content: contT,
+      };
+      const buff = pack(json);
+      ws.send(buff);
+    },
+    500,
+  );
+
   return (
     <div>
-      <LanguageSelector />
-      <FileSelector />
-
       <MonacoEditor
         className=""
         height="90vh"

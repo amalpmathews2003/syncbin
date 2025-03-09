@@ -1,14 +1,33 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useEditorStore } from './editor-store';
-
 import { ChangeEventHandler } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
+import { useWebSockerStore } from '../ws-store';
+import { pack } from 'msgpackr';
 
 export function FileSelector() {
   const setFile = useEditorStore(state => state.setFile);
   const setContent = useEditorStore(state => state.setContent);
   const language = useEditorStore(state => state.language);
+  const content = useEditorStore(state => state.content);
+
   const setLanguage = useEditorStore(state => state.setLanguage);
+
+  const ws = useWebSockerStore(state => state.ws);
+
+  const broadcastContent = useDebouncedCallback(
+    (langT: string, contT: string) => {
+      if (!ws) return;
+      const json = {
+        language: langT,
+        content: contT,
+      };
+      const buff = pack(json);
+      ws.send(buff);
+    },
+    500,
+  );
 
   const handleFileChange: ChangeEventHandler<HTMLInputElement> = event => {
     if (!event.target.files || event.target.files.length === 0) {
@@ -26,9 +45,11 @@ export function FileSelector() {
       setFile(file);
       const reader = new FileReader();
       reader.onload = e => {
-        const content = e.target?.result as string;
-        if (content) {
-          setContent(content);
+        const contentT = e.target?.result as string;
+        if (contentT !== content) {
+          console.log('dfdf');
+          setContent(contentT);
+          broadcastContent(detectedLang, contentT);
         }
       };
       reader.readAsText(file);
