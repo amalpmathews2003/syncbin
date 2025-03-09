@@ -3,9 +3,12 @@
 import { useTheme } from 'next-themes';
 import { Button } from './ui/button';
 import { Moon, Sun } from 'lucide-react';
-
-export function ThemeSwitch() {
+import { HTMLAttributes } from 'react';
+import { useEditorStore } from './editor/editor-store';
+export function ThemeSwitch({}: HTMLAttributes<HTMLButtonElement>) {
   const { setTheme } = useTheme();
+
+  const setEditorTheme = useEditorStore(state => state.setTheme);
 
   return (
     <>
@@ -13,7 +16,10 @@ export function ThemeSwitch() {
         className="flex dark:hidden"
         variant="outline"
         size="icon"
-        onClick={() => setTheme('dark')}
+        onClick={() => {
+          setTheme('dark');
+          setEditorTheme('vs-dark');
+        }}
       >
         <Moon className="item-center justify-center" />
       </Button>
@@ -21,7 +27,10 @@ export function ThemeSwitch() {
         className="hidden dark:flex"
         variant="outline"
         size="icon"
-        onClick={() => setTheme('light')}
+        onClick={() => {
+          setTheme('light');
+          setEditorTheme('light');
+        }}
       >
         <Sun />
       </Button>

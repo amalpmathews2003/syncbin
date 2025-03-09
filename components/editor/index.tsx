@@ -1,23 +1,24 @@
 'use client';
 
-import { Editor as MonacoEditor } from '@monaco-editor/react';
-import { LanguageSelector } from './language-selecter';
+import { EditorProps, Editor as MonacoEditor } from '@monaco-editor/react';
 import { useEditorStore } from './editor-store';
-import { FileSelector } from './file-selecter';
 import { useDebouncedCallback } from 'use-debounce';
-import { useWebSockerStore } from '../ws-store';
+import { useWebSocketStore } from '../ws-store';
 import { pack } from 'msgpackr';
 
-export function Editor() {
+export function Editor({ ...props }: EditorProps) {
   const language = useEditorStore(state => state.language);
   const setLanguage = useEditorStore(state => state.setLanguage);
   const content = useEditorStore(state => state.content);
   const setContent = useEditorStore(state => state.setContent);
+  const theme = useEditorStore(state => state.theme);
+  const isEditable = useEditorStore(state => state.isEditable);
 
-  const ws = useWebSockerStore(state => state.ws);
+  const ws = useWebSocketStore(state => state.ws);
+  const ownerId = useWebSocketStore(state => state.ownerId);
 
   const handleEditorChange = useDebouncedCallback(value => {
-    const newContent = value || '';
+    const newContent = value ?? '';
     if (newContent !== content) {
       setContent(newContent);
       const detectedLang = detectLanguage(newContent);
@@ -34,6 +35,8 @@ export function Editor() {
       const json = {
         language: langT,
         content: contT,
+        isEditable: isEditable,
+        ownerId: ownerId,
       };
       const buff = pack(json);
       ws.send(buff);
@@ -42,20 +45,19 @@ export function Editor() {
   );
 
   return (
-    <div>
-      <MonacoEditor
-        className=""
-        height="90vh"
-        width="80vw"
-        language={language}
-        value={content}
-        theme="vs-dark"
-        onChange={handleEditorChange}
-        options={{
-          renderValidationDecorations: 'off',
-        }}
-      />
-    </div>
+    <MonacoEditor
+      height="90vh"
+      width="80vw"
+      language={language}
+      value={content}
+      theme={theme}
+      onChange={handleEditorChange}
+      options={{
+        renderValidationDecorations: 'off',
+        readOnly: isEditable,
+      }}
+      {...props}
+    />
   );
 }
 

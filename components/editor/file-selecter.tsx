@@ -1,20 +1,21 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useEditorStore } from './editor-store';
-import { ChangeEventHandler } from 'react';
+import { ChangeEventHandler, HTMLAttributes } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
-import { useWebSockerStore } from '../ws-store';
+import { useWebSocketStore } from '../ws-store';
 import { pack } from 'msgpackr';
 
-export function FileSelector() {
+export function FileSelector({ ...props }: HTMLAttributes<HTMLDivElement>) {
   const setFile = useEditorStore(state => state.setFile);
   const setContent = useEditorStore(state => state.setContent);
   const language = useEditorStore(state => state.language);
   const content = useEditorStore(state => state.content);
-
+  const isEditable = useEditorStore(state => state.isEditable);
   const setLanguage = useEditorStore(state => state.setLanguage);
 
-  const ws = useWebSockerStore(state => state.ws);
+  const ws = useWebSocketStore(state => state.ws);
+  const ownerId = useWebSocketStore(state => state.ownerId);
 
   const broadcastContent = useDebouncedCallback(
     (langT: string, contT: string) => {
@@ -22,6 +23,8 @@ export function FileSelector() {
       const json = {
         language: langT,
         content: contT,
+        isEditable: isEditable,
+        ownerId: ownerId,
       };
       const buff = pack(json);
       ws.send(buff);
@@ -57,7 +60,7 @@ export function FileSelector() {
   };
 
   return (
-    <div className="grid w-full max-w-sm items-center gap-1.5">
+    <div {...props} className="grid w-full max-w-sm items-center gap-1.5">
       <Label htmlFor="picture">File</Label>
       <Input id="picture" type="file" onChange={handleFileChange} />
     </div>

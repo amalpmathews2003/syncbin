@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, HTMLAttributes } from 'react';
 import { useEditorStore } from './editor-store';
 
 const languages = [
@@ -36,7 +36,7 @@ const languages = [
 
 const defaultLanguage = 'plaintext';
 
-export function LanguageSelector() {
+export function LanguageSelector({ ...props }: HTMLAttributes<HTMLDivElement>) {
   const [position, setPosition] = useState(defaultLanguage);
   const setLanguage = useEditorStore(state => state.setLanguage);
 
@@ -46,30 +46,32 @@ export function LanguageSelector() {
     if (language && language != position) {
       setPosition(language);
     }
-  }, [language]);
+  }, [language, setPosition, position]);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline">{position}</Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56">
-        <DropdownMenuLabel>Lanugages</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup
-          value={position}
-          onValueChange={language => {
-            setPosition(language);
-            setLanguage(language);
-          }}
-        >
-          {languages.map((language, index) => (
-            <DropdownMenuRadioItem key={index} value={language}>
-              {language}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div {...props}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline">{position}</Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56">
+          <DropdownMenuLabel>Lanugages</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup
+            value={position}
+            onValueChange={language => {
+              setPosition(language);
+              setLanguage(language);
+            }}
+          >
+            {languages.map((language, index) => (
+              <DropdownMenuRadioItem key={index} value={language}>
+                {language}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

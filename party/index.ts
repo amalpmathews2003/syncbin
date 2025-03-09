@@ -1,9 +1,14 @@
+import { pack } from 'msgpackr';
 import type * as Party from 'partykit/server';
 
 export default class Server implements Party.Server {
   constructor(readonly room: Party.Room) {}
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
+  readMessages() {
+    return this.room.storage.get('messages');
+  }
+
+  async onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
     // A websocket just connected!
     console.log(
       `Connected:
@@ -13,7 +18,13 @@ export default class Server implements Party.Server {
     );
 
     // let's send a message to the connection
-    conn.send('hello from server');
+    // conn.send('hello from server');
+    const messages = await this.readMessages();
+    if (messages) {
+      conn.send(pack(messages));
+    } else {
+      conn.send('hello');
+    }
   }
 
   onMessage(message: string | ArrayBuffer, sender: Party.Connection) {
@@ -25,6 +36,7 @@ export default class Server implements Party.Server {
       // ...except for the connection it came from
       [sender.id],
     );
+    this.room.storage.put('messages', message);
   }
 }
 
